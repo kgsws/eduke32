@@ -980,9 +980,9 @@ static MenuOption_t MEO_JOYSTICKAXIS_ANALOG = MAKE_MENUOPTION( &MF_Bluefont, &ME
 static MenuEntry_t ME_JOYSTICKAXIS_ANALOG = MAKE_MENUENTRY( "Analog", &MF_Redfont, &MEF_BigSliders, &MEO_JOYSTICKAXIS_ANALOG, Option );
 static MenuRangeInt32_t MEO_JOYSTICKAXIS_SCALE = MAKE_MENURANGE( NULL, &MF_Bluefont, -262144, 262144, 65536, 65, 3 );
 static MenuEntry_t ME_JOYSTICKAXIS_SCALE = MAKE_MENUENTRY( "Scale", &MF_Redfont, &MEF_BigSliders, &MEO_JOYSTICKAXIS_SCALE, RangeInt32 );
-static MenuRangeInt32_t MEO_JOYSTICKAXIS_DEAD = MAKE_MENURANGE( NULL, &MF_Bluefont, 0, 1000000, 0, 33, 2 );
+static MenuRangeInt32_t MEO_JOYSTICKAXIS_DEAD = MAKE_MENURANGE( NULL, &MF_Bluefont, 0, 10000, 0, 33, 2 );
 static MenuEntry_t ME_JOYSTICKAXIS_DEAD = MAKE_MENUENTRY( "Dead Zone", &MF_Redfont, &MEF_BigSliders, &MEO_JOYSTICKAXIS_DEAD, RangeInt32 );
-static MenuRangeInt32_t MEO_JOYSTICKAXIS_SATU = MAKE_MENURANGE( NULL, &MF_Bluefont, 0, 1000000, 0, 33, 2 );
+static MenuRangeInt32_t MEO_JOYSTICKAXIS_SATU = MAKE_MENURANGE( NULL, &MF_Bluefont, 0, 10000, 0, 33, 2 );
 static MenuEntry_t ME_JOYSTICKAXIS_SATU = MAKE_MENUENTRY( "Saturation", &MF_Redfont, &MEF_BigSliders, &MEO_JOYSTICKAXIS_SATU, RangeInt32 );
 
 static MenuOption_t MEO_JOYSTICKAXIS_DIGITALNEGATIVE = MAKE_MENUOPTION( &MF_Minifont, &MEOS_Gamefuncs, NULL );
@@ -3380,6 +3380,9 @@ static void Menu_EntryStringActivate(/*MenuEntry_t *entry*/)
     switch (g_currentMenu)
     {
     case MENU_SAVE:
+#ifdef __SWITCH__
+        Menu_EntryStringSubmit(g_mapInfo[ud.volume_number * MAXLEVELS + ud.level_number].name);
+#else
         if (M_SAVE.currentEntry > 0)
         {
             savebrief_t & sv = g_menusaves[M_SAVE.currentEntry-1].brief;
@@ -3392,10 +3395,8 @@ static void Menu_EntryStringActivate(/*MenuEntry_t *entry*/)
         {
             ME_SAVE_NEW.name = nullptr;
             save_xxh = 0;
-#ifdef __SWITCH__
-			Menu_EntryStringSubmit(g_mapInfo[ud.volume_number * MAXLEVELS + ud.level_number].name);
-#endif
         }
+#endif
         break;
 
     default:

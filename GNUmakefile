@@ -881,8 +881,8 @@ ifeq ($$(PLATFORM),DARWIN)
 	cp -f "$$($1_$2)$$(EXESUFFIX)" "$$($1_$2_proper).app/Contents/MacOS/"
 endif
 ifeq ($$(PLATFORM),SWITCH)
-	nacptool --create "Duke Nukem 3D" "Cpasjuste" "1.0" $$($1_$2).nacp
-	elf2nro $$@ $$($1_$2).nro --icon=platform/Switch/icon.jpg --nacp=$$($1_$2).nacp
+	/opt/devkitpro/tools/bin/nacptool --create "Duke Nukem 3D" "Cpasjuste" "1.1" $$($1_$2).nacp
+	/opt/devkitpro/tools/bin/elf2nro $$@ $$($1_$2).nro --icon=platform/Switch/icon.jpg --nacp=$$($1_$2).nacp
 endif
 
 endef
