@@ -2,8 +2,8 @@
 ###### Based on EDuke32 and JFSW ports
 
 #### Bugs
-Crash on game exit. Workaround: use `home` button to exit the game.
-Sound is a bit off after wake up from sleep.
+- Crash on game exit. Workaround: use `home` button to exit the game.
+- Sound is a bit off after wake up from sleep.
 
 #### Compile
 To compile eduke32 use command `make PLATFORM=SWITCH` and wait.
