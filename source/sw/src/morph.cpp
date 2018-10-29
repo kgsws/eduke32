@@ -43,7 +43,7 @@ DoSectorObjectSetScale(short match)
 
     for (sop = SectorObject; sop < &SectorObject[MAX_SECTOR_OBJECTS]; sop++)
     {
-        if (sop->xmid == MAXLONG)
+        if (sop->xmid == 2147483647)
             continue;
 
         if (sop->match_event == match)
@@ -118,7 +118,7 @@ DoSOevent(short match, short state)
 
     for (sop = SectorObject; sop < &SectorObject[MAX_SECTOR_OBJECTS]; sop++)
     {
-        if (sop->xmid == MAXLONG)
+        if (sop->xmid == 2147483647)
             continue;
 
         if (sop->match_event == match)

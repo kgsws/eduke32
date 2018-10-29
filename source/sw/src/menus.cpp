@@ -36,6 +36,8 @@ Prepared for public release: 03/28/2005 - Charlie Wiederhold, 3D Realms
 #include "weapon.h"
 #include "player.h"
 #include "jsector.h"
+#include "mouse.h"
+#include "joystick.h"
 #include "control.h"
 #include "menus.h"
 #include "sw_strs.h"
@@ -171,8 +173,8 @@ static SWBOOL ApplyModeSettings(void)
 
     if (lastx == newx && lasty == newy && lastbpp == newbpp && lastfs == newfs) return FALSE;
 
-    if (setgamemode(newfs, newx, newy, newbpp))
-        setgamemode(lastfs, lastx, lasty, lastbpp);
+    if (videoSetGameMode(newfs, newx, newy, newbpp))
+        videoSetGameMode(lastfs, lastx, lasty, lastbpp);
     else
     {
         extern int32_t ScreenMode,ScreenWidth,ScreenHeight,ScreenBPP; // Because I'm too lazy to include config.h
@@ -742,8 +744,8 @@ MNU_ParentalCustom(void)
         // clear keyboard buffer
         while (KB_KeyWaiting())
         {
-            if (KB_Getch() == 0)
-                KB_Getch();
+            if (KB_GetCh() == 0)
+                KB_GetCh();
         }
 
         // toggle edit mode
@@ -803,10 +805,10 @@ SWBOOL MNU_KeySetupCustom(UserCall call, MenuItem *item)
             KeyboardKeys[currentkey][currentcol] = KB_GetLastScanCode();
             if (currentkey != gamefunc_Show_Console)
             {
-                CONTROL_MapKey(currentkey,
+/*                CONTROL_MapKey(currentkey,
                                KeyboardKeys[currentkey][0],
                                KeyboardKeys[currentkey][1]);
-            }
+*/            }
             else
             {
                 OSD_CaptureKey(KB_GetLastScanCode());
@@ -855,10 +857,10 @@ SWBOOL MNU_KeySetupCustom(UserCall call, MenuItem *item)
             if (currentkey != gamefunc_Show_Console)
             {
                 KeyboardKeys[currentkey][currentcol] = 0xff;
-                CONTROL_MapKey(currentkey,
+/*                CONTROL_MapKey(currentkey,
                                KeyboardKeys[currentkey][0],
                                KeyboardKeys[currentkey][1]);
-            }
+*/            }
         }
         else if (KB_KeyPressed(sc_Home))
         {
@@ -926,14 +928,14 @@ SWBOOL MNU_KeySetupCustom(UserCall call, MenuItem *item)
             j = OPT_LINE(0)+(i-topitem)*8;
             MNU_DrawSmallString(OPT_XS, j, ds, (i==currentkey) ? 0 : 12, 16);
 
-            p = getkeyname(KeyboardKeys[i][0]);
+            p = NULL;//getkeyname(KeyboardKeys[i][0]);
             if (!p || KeyboardKeys[i][0]==0xff) p = "  -";
             MNU_DrawSmallString(OPT_XSIDE, j, (char *)p, (i==currentkey) ? -5 : 12,
                                 (i==currentkey && currentcol==0) ? 14 : 16);
 
             if (i == gamefunc_Show_Console) continue;
 
-            p = getkeyname(KeyboardKeys[i][1]);
+            p = NULL;//getkeyname(KeyboardKeys[i][1]);
             if (!p || KeyboardKeys[i][1]==0xff) p = "  -";
             MNU_DrawSmallString(OPT_XSIDE + 4*14, j, (char *)p, (i==currentkey) ? -5 : 12,
                                 (i==currentkey && currentcol==1) ? 14 : 16);
@@ -962,9 +964,15 @@ static int MNU_SelectButtonFunction(const char *buttonname, int *currentfunc)
     int i, j, y;
     short w, h=0;
     int returnval = 0;
+	static int selll = 9;
 
     UserInput inpt = {FALSE,FALSE,dir_None};
-    CONTROL_GetUserInput(&inpt);
+	selll--;
+	if(!selll)
+	{
+	    CONTROL_GetUserInput(&inpt);
+		selll = 9;
+	}
 
     if (inpt.button1)
     {
@@ -1275,13 +1283,13 @@ static SWBOOL MNU_JoystickButtonsInitialise(MenuItem_p mitem)
     joybuttonssetupgroup.items = joybuttons_i[0];
     item = &joybuttons_i[0][0];
 
-    for (button = 0; button < joynumbuttons * 2 + (joynumhats > 0) * 4; )
+    for (button = 0; button < joystick.numButtons * 2 + (joystick.numHats > 0) * 4; )
     {
-        if (button < joynumbuttons * 2)
+        if (button < joystick.numButtons * 2)
         {
             int dbutton = button / 2;
 
-            strcpy(JoystickButtonNames[dbutton], getjoyname(1, dbutton));
+            strcpy(JoystickButtonNames[dbutton], joyGetName(1, dbutton));
 
             templayer.text = JoystickButtonNames[dbutton];
             templayer.y = OPT_LINE(pageitem);
@@ -1298,7 +1306,7 @@ static SWBOOL MNU_JoystickButtonsInitialise(MenuItem_p mitem)
             pageitem++;
 
             strcpy(JoystickButtonNames[dbutton + MAXJOYBUTTONS], "Double ");
-            strcat(JoystickButtonNames[dbutton + MAXJOYBUTTONS], getjoyname(1, dbutton));
+            strcat(JoystickButtonNames[dbutton + MAXJOYBUTTONS], joyGetName(1, dbutton));
 
             templayer.text = JoystickButtonNames[dbutton + MAXJOYBUTTONS];
             templayer.y = OPT_LINE(pageitem);
@@ -1318,10 +1326,10 @@ static SWBOOL MNU_JoystickButtonsInitialise(MenuItem_p mitem)
         }
         else
         {
-            int dir = button - joynumbuttons * 2;
-            int dbutton = joynumbuttons + dir;
+            int dir = button - joystick.numButtons * 2;
+            int dbutton = joystick.numButtons + dir;
 
-            strcpy(JoystickButtonNames[dbutton], getjoyname(2, 0));
+            strcpy(JoystickButtonNames[dbutton], joyGetName(2, 0));
             strcat(JoystickButtonNames[dbutton], hatdirs[dir]);
 
             templayer.text = JoystickButtonNames[dbutton];
@@ -1340,11 +1348,11 @@ static SWBOOL MNU_JoystickButtonsInitialise(MenuItem_p mitem)
             button++;
         }
 
-        if (pageitem == JOYSTICKITEMSPERPAGE || button == joynumbuttons * 2 + (joynumhats > 0) * 4)
+        if (pageitem == JOYSTICKITEMSPERPAGE || button == joystick.numButtons * 2 + (joystick.numHats > 0) * 4)
         {
             // next page
             sprintf(JoystickButtonPageName[page], "Page %d / %d", page+1,
-                    ((joynumbuttons * 2 + (joynumhats > 0) * 4) / JOYSTICKITEMSPERPAGE) + 1);
+                    ((joystick.numButtons * 2 + (joystick.numHats > 0) * 4) / JOYSTICKITEMSPERPAGE) + 1);
 
             temppagename.text = JoystickButtonPageName[page];
             memcpy(item, &temppagename, sizeof(MenuItem));
@@ -1436,7 +1444,7 @@ static SWBOOL MNU_JoystickButtonSetupCustom(UserCall call, MenuItem *item)
 
 static SWBOOL MNU_JoystickButtonNextPage(void)
 {
-    JoystickButtonPage = (JoystickButtonPage + 1) % (((joynumbuttons * 2 + (joynumhats > 0) * 4) / JOYSTICKITEMSPERPAGE) + 1);
+    JoystickButtonPage = (JoystickButtonPage + 1) % (((joystick.numButtons * 2 + (joystick.numHats > 0) * 4) / JOYSTICKITEMSPERPAGE) + 1);
     joybuttonssetupgroup.items = &joybuttons_i[JoystickButtonPage][0];
     joybuttonssetupgroup.cursor = 0;
     MNU_ItemPreProcess(&joybuttonssetupgroup);
@@ -1485,13 +1493,13 @@ static SWBOOL MNU_JoystickAxesInitialise(MenuItem_p mitem)
     {
         return TRUE;
     }
-    if (JoystickAxisPage < 0 || JoystickAxisPage >= joynumaxes)
+    if (JoystickAxisPage < 0 || JoystickAxisPage >= joystick.numAxes)
     {
         JoystickAxisPage = 0;
     }
 
-    strcpy(JoystickAxisName, getjoyname(0, JoystickAxisPage));
-    sprintf(JoystickAxisPageName, "Page %d / %d", JoystickAxisPage+1, joynumaxes);
+    strcpy(JoystickAxisName, joyGetName(0, JoystickAxisPage));
+    sprintf(JoystickAxisPageName, "Page %d / %d", JoystickAxisPage+1, joystick.numAxes);
     slidersettings[sldr_joyaxisanalog] = MNU_ControlAxisOffset(JoystickAnalogAxes[JoystickAxisPage]);
     slidersettings[sldr_joyaxisscale] = JoystickAnalogScale[JoystickAxisPage] >> 13;
     slidersettings[sldr_joyaxisdead] = JoystickAnalogDead[JoystickAxisPage] >> 10;
@@ -2123,7 +2131,11 @@ MNU_QuickLoadCustom(UserCall call, MenuItem_p item)
 
     if (ret == FALSE)
     {
-        if (KB_KeyPressed(sc_N) || KB_KeyPressed(sc_Space) || KB_KeyPressed(sc_Enter))
+        if (KB_KeyPressed(sc_N) || KB_KeyPressed(sc_Space) || KB_KeyPressed(sc_Enter)
+#if defined(__SWITCH__)
+		|| (JOYSTICK_GetButtons()&0x00000002) // KEY_B
+#endif
+		)
         {
             cust_callback = NULL;
             if (ReloadPrompt)
@@ -2131,7 +2143,7 @@ MNU_QuickLoadCustom(UserCall call, MenuItem_p item)
                 ReloadPrompt = FALSE;
                 bak = GlobInfoStringTime;
                 GlobInfoStringTime = 999;
-                PutStringInfo(pp, "Press SPACE to restart");
+                PutStringInfo(pp, "Press USE to restart");
                 GlobInfoStringTime = bak;
             }
 
@@ -2202,7 +2214,7 @@ MNU_InitMenus(void)
             if (validbpps[i] == bpp)
                 slidersettings[sldr_videobpp] = i;
 
-        i = checkvideomode(&newx, &newy, bpp, fullscreen, 1);
+        i = videoCheckMode(&newx, &newy, bpp, fullscreen, 1);
         if (i != 0x7fffffff && i >= 0)
             for (i=0; i<numvalidresolutions; i++)
                 if (validresolutions[i].xdim == newx && validresolutions[i].ydim == newy)
@@ -2552,12 +2564,12 @@ MNU_InputSmallString(char *name, short pix_width)
 
     while (KB_KeyWaiting())
     {
-        ch = KB_Getch();
+        ch = KB_GetCh();
 
         // skip any extended key
         if (ch == 0)
         {
-            ch = KB_Getch();
+            ch = KB_GetCh();
             if (ch == 104) // extended enter
                 ch = ascii_return;
             else
@@ -2622,6 +2634,7 @@ MNU_Dialog(void)
     mnu_input.button0 = mnu_input.button1 = FALSE;
     CONTROL_ClearUserInput(&mnu_input);
     CONTROL_GetUserInput(&mnu_input);
+    mnu_input.dir = dir_None;
 
     if (KB_KeyPressed(sc_Y) || KB_KeyPressed(sc_Enter) || mnu_input.button0)
         return TRUE;
@@ -2645,7 +2658,7 @@ MNU_InputString(char *name, short pix_width)
 
     while (KB_KeyWaiting())
     {
-        ch = KB_Getch();
+        ch = KB_GetCh();
 
         ////DSPRINTF(ds, "%c %d", ch, ch);
         //MONO_PRINT(ds);
@@ -2653,7 +2666,7 @@ MNU_InputString(char *name, short pix_width)
         // skip most extended keys
         if (ch == 0)
         {
-            ch = KB_Getch();
+            ch = KB_GetCh();
 
             ////DSPRINTF(ds, "extended key %c %d", ch, ch);
             //MONO_PRINT(ds);
@@ -2699,12 +2712,12 @@ void LoadSaveMsg(char *msg)
 {
     short w,h;
 
-    flushperms();
+    renderFlushPerms();
     DrawMenuLevelScreen();
     strcpy((char *)ds, (char *)msg);
     MNU_MeasureString(ds, &w, &h);
     MNU_DrawString(TEXT_XCENTER(w), 170, ds, 1, 16);
-    nextpage();
+    videoNextPage();
 }
 
 
@@ -2794,7 +2807,11 @@ MNU_GetSaveCustom(void)
     if (InMenuLevel)
         return FALSE;
 
+#ifdef __SWITCH__
+	strcpy(SaveGameDescr[save_num], LevelInfo[Level].Description);
+#else
     if (MenuInputMode)
+#endif
     {
         PauseAction();
 
@@ -2814,6 +2831,7 @@ MNU_GetSaveCustom(void)
         // toggle edit mode
         MenuInputMode = FALSE;
     }
+#ifndef __SWITCH__
     else
     {
         strcpy(BackupSaveGameDescr, SaveGameDescr[save_num]);
@@ -2821,14 +2839,14 @@ MNU_GetSaveCustom(void)
         // clear keyboard buffer
         while (KB_KeyWaiting())
         {
-            if (KB_Getch() == 0)
-                KB_Getch();
+            if (KB_GetCh() == 0)
+                KB_GetCh();
         }
 
         // toggle edit mode
         MenuInputMode = TRUE;
     }
-
+#endif
     return TRUE;
 }
 
@@ -3642,7 +3660,8 @@ MNU_DoSlider(short dir, MenuItem_p item, SWBOOL draw)
         slidersettings[sldr_mouse] = offset;
 
         gs.MouseSpeed = offset * (MOUSE_SENS_MAX_VALUE/SLDR_MOUSESENSEMAX);
-        CONTROL_SetMouseSensitivity(gs.MouseSpeed);
+//        CONTROL_SetMouseSensitivity(gs.MouseSpeed);
+		CONTROL_MouseSensitivity = gs.MouseSpeed;
         break;
 
     case sldr_sndfxvolume:
@@ -3992,13 +4011,12 @@ MNU_DoSlider(short dir, MenuItem_p item, SWBOOL draw)
             if (item->slider == sldr_joyaxisdead)
             {
                 JoystickAnalogDead[JoystickAxisPage] = min((offset<<10), 32767);
-                CONTROL_SetJoyAxisDead(JoystickAxisPage, JoystickAnalogDead[JoystickAxisPage]);
             }
             else
             {
                 JoystickAnalogSaturate[JoystickAxisPage] = min((offset<<10), 32767);
-                CONTROL_SetJoyAxisSaturate(JoystickAxisPage, JoystickAnalogSaturate[JoystickAxisPage]);
             }
+			joySetDeadZone(JoystickAxisPage, JoystickAnalogDead[JoystickAxisPage], JoystickAnalogSaturate[JoystickAxisPage]);
         }
 
         sprintf(tmp_text, "%.2f%%", (float)(slidersettings[item->slider]<<10) / 32767.f);
@@ -4576,7 +4594,7 @@ SetupMenu(void)
 void MNU_DoMenu(CTLType type, PLAYERp pp)
 {
     SWBOOL resetitem;
-    UCHAR key;
+    unsigned char key;
     int zero = 0;
     static int handle2 = 0;
     static int limitmove=0;
@@ -4638,9 +4656,12 @@ void MNU_DoMenu(CTLType type, PLAYERp pp)
             mnu_input_buffered.button1 = tst_input.button1;
         }
 
-        if (totalclock - limitmove > 7 && !select_held)
+        if (totalclock - limitmove > 10 && !select_held)
         {
-            mnu_input.dir = mnu_input_buffered.dir;
+			if(ControlPanelType == ct_quickloadmenu)
+				mnu_input.dir = dir_None;
+			else
+        		mnu_input.dir = mnu_input_buffered.dir;
 
             if (mnu_input.dir != dir_None)
                 if (!FX_SoundActive(handle2))
@@ -4729,7 +4750,11 @@ MNU_CheckForMenus(void)
     }
     else
     {
-        if ((KEY_PRESSED(KEYSC_ESC) || BUTTON(gamefunc_Show_Menu)) && dimensionmode == 3 && !ConPanel)
+        if ((KEY_PRESSED(KEYSC_ESC) || BUTTON(gamefunc_Show_Menu)
+#if defined(__SWITCH__)
+			|| (JOYSTICK_GetButtons()&0x00000400) // KEY_PLUS
+#endif
+			 ) && dimensionmode == 3 && !ConPanel)
         {
             KEY_PRESSED(KEYSC_ESC) = 0;
             CONTROL_ClearButton(gamefunc_Show_Menu);
@@ -4885,7 +4910,7 @@ FadeIn(unsigned char startcolor, unsigned int clicks)
     RGB_color color;
     unsigned char temp_pal[768], *palette;
 
-    if (getrendermode() >= 3) return;
+    if (videoGetRenderMode() >= 3) return;
 
     palette = &palette_data[0][0];
 
@@ -4943,7 +4968,7 @@ FadeOut(unsigned char targetcolor, unsigned int clicks)
     RGB_color color;
     unsigned char temp_pal[768];
 
-    if (getrendermode() >= 3) return;
+    if (videoGetRenderMode() >= 3) return;
 
     color.red = palette_data[targetcolor][0];
     color.green = palette_data[targetcolor][1];
@@ -5058,10 +5083,10 @@ SetFadeAmt(PLAYERp pp, short damage, unsigned char startcolor)
     // Reset the palette
     if (pp == Player + screenpeek)
     {
-        if (getrendermode() < 3)
+//        if (videoGetRenderMode() < 3)
             COVERsetbrightness(gs.Brightness,&palette_data[0][0]);
-        else
-            setpalettefade(0,0,0,0);
+//        else
+//            setpalettefade(0,0,0,0);
         if (pp->FadeAmt <= 0)
             GetPaletteFromVESA(&ppalette[screenpeek][0]);
     }
@@ -5151,8 +5176,10 @@ SetFadeAmt(PLAYERp pp, short damage, unsigned char startcolor)
     // Do initial palette set
     if (pp == Player + screenpeek)
     {
-        if (getrendermode() < 3) set_pal(pp->temp_pal);
-        else setpalettefade(color.red, color.green, color.blue, faderamp[min(31,max(0,32-abs(pp->FadeAmt)))]);
+//        if (videoGetRenderMode() < 3)
+			set_pal(pp->temp_pal);
+//        else
+//			setpalettefade(color.red, color.green, color.blue, faderamp[min(31,max(0,32-abs(pp->FadeAmt)))]);
         if (damage < -1000)
             pp->FadeAmt = 1000;  // Don't call DoPaletteFlash for underwater stuff
     }
@@ -5175,10 +5202,10 @@ DoPaletteFlash(PLAYERp pp)
         pp->StartColor = 0;
         if (pp == Player + screenpeek)
         {
-            if (getrendermode() < 3)
+//            if (videoGetRenderMode() < 3)
                 COVERsetbrightness(gs.Brightness,&palette_data[0][0]);
-            else
-                setpalettefade(0,0,0,0);
+//            else
+//                setpalettefade(0,0,0,0);
             memcpy(pp->temp_pal, palette_data, sizeof(palette_data));
             DoPlayerDivePalette(pp);  // Check Dive again
             DoPlayerNightVisionPalette(pp);  // Check Night Vision again
@@ -5214,10 +5241,10 @@ DoPaletteFlash(PLAYERp pp)
         pp->StartColor = 0;
         if (pp == Player + screenpeek)
         {
-            if (getrendermode() < 3)
+//            if (videoGetRenderMode() < 3)
                 COVERsetbrightness(gs.Brightness,&palette_data[0][0]);
-            else
-                setpalettefade(0,0,0,0);
+//            else
+//                setpalettefade(0,0,0,0);
             memcpy(pp->temp_pal, palette_data, sizeof(palette_data));
             DoPlayerDivePalette(pp);  // Check Dive again
             DoPlayerNightVisionPalette(pp);  // Check Night Vision again
@@ -5250,8 +5277,9 @@ DoPaletteFlash(PLAYERp pp)
         // Only hard set the palette if this is currently the player's view
         if (pp == Player + screenpeek)
         {
-            if (getrendermode() < 3) set_pal(pp->temp_pal);
-            else
+//            if (videoGetRenderMode() < 3)
+				set_pal(pp->temp_pal);
+/*            else
             {
                 setpalettefade(
                     palette_data[pp->StartColor][0],
@@ -5259,7 +5287,7 @@ DoPaletteFlash(PLAYERp pp)
                     palette_data[pp->StartColor][2],
                     faderamp[min(31,max(0,32-abs(pp->FadeAmt)))]
                     );
-            }
+            }*/
         }
 
     }
@@ -5268,16 +5296,110 @@ DoPaletteFlash(PLAYERp pp)
 
 void ResetPalette(PLAYERp pp)
 {
-    if (getrendermode() < 3)
+//    if (videoGetRenderMode() < 3)
         COVERsetbrightness(gs.Brightness,&palette_data[0][0]);
-    else
-        setpalettefade(0,0,0,0);
+//    else
+//        setpalettefade(0,0,0,0);
     memcpy(pp->temp_pal, palette_data, sizeof(palette_data));
     //DoPlayerDivePalette(pp);  // Check Dive again
     //DoPlayerNightVisionPalette(pp);  // Check Night Vision again
     pp->FadeAmt = 0;
     pp->StartColor = 0;
     pp->FadeTics = 0;
+}
+
+void CONTROL_GetUserInput(UserInput *input)
+{
+	// UP
+    if (
+            KB_KeyPressed(sc_UpArrow) ||
+            KB_KeyPressed(sc_kpad_8) ||
+            (MOUSE_GetButtons()&WHEELUP_MOUSE) ||
+            BUTTON(gamefunc_Move_Forward) ||
+            (JOYSTICK_GetHat(0)&HAT_UP)
+#if defined(__SWITCH__)
+			|| (JOYSTICK_GetButtons()&0x00002000) // KEY_DUP
+#endif
+            )
+		input->dir = dir_North;
+
+	// DOWN
+    if (
+            KB_KeyPressed(sc_DownArrow) ||
+            KB_KeyPressed(sc_kpad_2) ||
+            (MOUSE_GetButtons()&WHEELDOWN_MOUSE) ||
+            BUTTON(gamefunc_Move_Backward) ||
+            (JOYSTICK_GetHat(0)&HAT_DOWN)
+#if defined(__SWITCH__)
+			|| (JOYSTICK_GetButtons()&0x00008000) // KEY_DDOWN
+#endif
+            )
+		input->dir = dir_South;
+
+	// LEFT
+    if (
+            KB_KeyPressed(sc_LeftArrow) ||
+            KB_KeyPressed(sc_kpad_4) ||
+            BUTTON(gamefunc_Turn_Left) ||
+            BUTTON(gamefunc_Strafe_Left) ||
+            (JOYSTICK_GetHat(0)&HAT_LEFT)
+#if defined(__SWITCH__)
+			|| (JOYSTICK_GetButtons()&0x00001000) // KEY_DLEFT
+#endif
+            )
+		input->dir = dir_West;
+
+	// RIGHT
+    if (
+            KB_KeyPressed(sc_RightArrow) ||
+            KB_KeyPressed(sc_kpad_6) ||
+            BUTTON(gamefunc_Turn_Right) ||
+            BUTTON(gamefunc_Strafe_Right) ||
+            (MOUSE_GetButtons()&MIDDLE_MOUSE) ||
+            (JOYSTICK_GetHat(0)&HAT_RIGHT)
+#if defined(__SWITCH__)
+			|| (JOYSTICK_GetButtons()&0x00004000) // KEY_DRIGHT
+#endif
+            )
+		input->dir = dir_East;
+
+	// (advance)
+    if (
+            KB_KeyPressed(sc_kpad_Enter) ||
+            KB_KeyPressed(sc_Enter) ||
+#ifdef __SWITCH__
+			JOYSTICK_GetButtons()&0x00000001 // KEY_A
+#else
+            BUTTON(gamefunc_Open) ||
+            BUTTON(gamefunc_Fire)
+#endif
+            )
+		input->button0 = 1;
+	else
+		input->button0 = 0;
+
+	// (return)
+    if (
+            KB_KeyPressed(sc_Escape) ||
+            (MOUSE_GetButtons()&RIGHT_MOUSE) ||
+            BUTTON(gamefunc_Crouch)
+#if defined(GEKKO)
+            || (JOYSTICK_GetButtons()&(WII_B|WII_HOME))
+#endif
+#if defined(__SWITCH__)
+			|| (JOYSTICK_GetButtons()&0x00000002) // KEY_B
+#endif
+            )
+		input->button1 = 1;
+	else
+		input->button1 = 0;
+}
+
+void CONTROL_ClearUserInput(UserInput *input)
+{
+	input->dir = 0;
+	input->button0 = 0;
+	input->button1 = 0;
 }
 
 // vim:ts=4:sw=4:enc=utf-8:

@@ -5070,10 +5070,10 @@ DoPlayerDivePalette(PLAYERp pp)
         {
             memcpy(pp->temp_pal, palette_data, sizeof(palette_data));
             memcpy(palookup[PALETTE_DEFAULT], DefaultPalette, 256 * 32);
-            if (getrendermode() < 3)
+//            if (getrendermode() < 3)
                 COVERsetbrightness(gs.Brightness, &palette_data[0][0]);
-            else
-                setpalettefade(0,0,0,0);
+//            else
+//                setpalettefade(0,0,0,0);
             pp->FadeAmt = 0;
         }
     }
@@ -6555,7 +6555,7 @@ DoPlayerBeginDie(PLAYERp pp)
     {
         bak = GlobInfoStringTime;
         GlobInfoStringTime = 999;
-        PutStringInfo(pp, "Press SPACE to restart");
+        PutStringInfo(pp, "Press USE to restart");
         GlobInfoStringTime = bak;
     }
 
@@ -6937,10 +6937,10 @@ void DoPlayerDeathCheckKeys(PLAYERp pp)
 
         if (pp == Player + screenpeek)
         {
-            if (getrendermode() < 3)
+//            if (getrendermode() < 3)
                 COVERsetbrightness(gs.Brightness,&palette_data[0][0]);
-            else
-                setpalettefade(0,0,0,0);
+//            else
+//                setpalettefade(0,0,0,0);
             //memcpy(&palette_data[0][0],&palette_data[0][0],768);
             memcpy(&pp->temp_pal[0],&palette_data[0][0],768);
         }

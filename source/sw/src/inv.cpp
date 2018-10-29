@@ -338,9 +338,9 @@ UseInventoryMedkit(PLAYERp pp)
     if (pp == Player+myconnectindex)
     {
         if (amt >= 30)
-            PlayerSound(DIGI_GETMEDKIT,&pp->posx,&pp->posy,&pp->posz,v3df_follow|v3df_dontpan,pp);
+            PlayerSound(DIGI_GETMEDKIT,&pp->posx,&pp->posy,&pp->posz,(Voc3D_Flags)(v3df_follow|v3df_dontpan),pp);
         else
-            PlayerSound(DIGI_AHH,&pp->posx,&pp->posy,&pp->posz,v3df_follow|v3df_dontpan,pp);
+            PlayerSound(DIGI_AHH,&pp->posx,&pp->posy,&pp->posz,(Voc3D_Flags)(v3df_follow|v3df_dontpan),pp);
     }
 }
 
@@ -438,9 +438,9 @@ UseInventoryRepairKit(PLAYERp pp)
     if (pp == Player + myconnectindex)
     {
         if (STD_RANDOM_RANGE(1000) > 500)
-            PlayerSound(DIGI_NOREPAIRMAN,&pp->posx,&pp->posy,&pp->posz,v3df_follow|v3df_dontpan,pp);
+            PlayerSound(DIGI_NOREPAIRMAN,&pp->posx,&pp->posy,&pp->posz,(Voc3D_Flags)(v3df_follow|v3df_dontpan),pp);
         else
-            PlayerSound(DIGI_NOREPAIRMAN2,&pp->posx,&pp->posy,&pp->posz,v3df_follow|v3df_dontpan,pp);
+            PlayerSound(DIGI_NOREPAIRMAN2,&pp->posx,&pp->posy,&pp->posz,(Voc3D_Flags)(v3df_follow|v3df_dontpan),pp);
     }
 
     pp->InventoryPercent[inv] = 0;
@@ -482,7 +482,7 @@ UseInventoryCloak(PLAYERp pp)
     PlaySound(DIGI_GASPOP, &pp->posx, &pp->posy, &pp->posz, v3df_none);
     //if(RANDOM_RANGE(1000) > 950)
     if (pp == Player+myconnectindex)
-        PlayerSound(DIGI_IAMSHADOW,&pp->posx,&pp->posy,&pp->posz,v3df_follow|v3df_dontpan,pp);
+        PlayerSound(DIGI_IAMSHADOW,&pp->posx,&pp->posy,&pp->posz,(Voc3D_Flags)(v3df_follow|v3df_dontpan),pp);
 }
 
 void
@@ -630,10 +630,10 @@ DoPlayerNightVisionPalette(PLAYERp pp)
             memcpy(pp->temp_pal, palette_data, sizeof(palette_data));
             memcpy(palookup[PALETTE_DEFAULT], DefaultPalette, 256 * 32);
             pp->FadeAmt = 0;
-            if (getrendermode() < 3)
+//            if (getrendermode() < 3)
                 COVERsetbrightness(gs.Brightness, &palette_data[0][0]);
-            else
-                setpalettefade(0,0,0,0);
+//            else
+//                setpalettefade(0,0,0,0);
         }
         pp->NightVision = FALSE;
     }
@@ -657,7 +657,7 @@ UseInventoryNightVision(PLAYERp pp)
     PlayerUpdateInventory(pp, pp->InventoryNum);
 
     DoPlayerNightVisionPalette(pp);
-    PlaySound(DIGI_NIGHTON, &pp->posx, &pp->posy, &pp->posz, v3df_dontpan|v3df_follow);
+    PlaySound(DIGI_NIGHTON, &pp->posx, &pp->posy, &pp->posz, (Voc3D_Flags)(v3df_dontpan|v3df_follow));
 }
 
 void
@@ -681,7 +681,7 @@ StopInventoryNightVision(PLAYERp pp, short InventoryNum)
 
     DoPlayerNightVisionPalette(pp);
     DoPlayerDivePalette(pp);
-    PlaySound(DIGI_NIGHTOFF, &pp->posx, &pp->posy, &pp->posz, v3df_dontpan|v3df_follow);
+    PlaySound(DIGI_NIGHTOFF, &pp->posx, &pp->posy, &pp->posz, (Voc3D_Flags)(v3df_dontpan|v3df_follow));
 }
 
 //////////////////////////////////////////////////////////////////////

@@ -1549,7 +1549,7 @@ int COVERsetgamemode(int mode, int xdim, int ydim, int bpp)
     ScreenMode   = mode;
     ScreenBPP    = bpp;
 
-    return (int)setgamemode(mode,xdim,ydim,bpp);
+    return (int)videoSetGameMode(mode,xdim,ydim,bpp);
 }
 
 void CheatResChange(void)
@@ -1604,8 +1604,8 @@ void ResChange(void)
     // clear pages before and after res set for good measure
     for (i = 0; i < numpages; i++)
     {
-        clearview(0);
-        nextpage();
+        videoClearViewableArea(0);
+        videoNextPage();
     }
 
     // needs to be called from drawscreen - crashes otherwise
@@ -1656,8 +1656,8 @@ void ResChange(void)
 
     for (i = 0; i < numpages; i++)
     {
-        clearview(0);
-        nextpage();
+        videoClearViewableArea(0);
+        videoNextPage();
     }
 
     SetupAspectRatio();
@@ -1670,7 +1670,7 @@ void ResChange(void)
 
 void ScreenCaptureKeys(void)
 {
-    if (ConPanel)
+/*    if (ConPanel)
         return;
 
     // screen capture
@@ -1681,7 +1681,7 @@ void ScreenCaptureKeys(void)
         screencapture("swcpxxxx.tga", KEY_PRESSED(KEYSC_LSHIFT) | KEY_PRESSED(KEYSC_RSHIFT));
         ResumeAction();
         PutStringInfo(Player + myconnectindex, "Screen Captured");
-    }
+    }*/
 }
 
 void DrawCheckKeys(PLAYERp pp)
@@ -2266,13 +2266,13 @@ drawscreen(PLAYERp pp)
 
     if (HelpInputMode)
     {
-        flushperms();
+        renderFlushPerms();
         // note - could put Order Info Pages at the top like this also
 
         rotatesprite(0,0,65536L,0,HelpPagePic[HelpPage],0,0,
                      (ROTATE_SPRITE_CORNER|ROTATE_SPRITE_SCREEN_CLIP|ROTATE_SPRITE_NON_MASK|ROTATE_SPRITE_IGNORE_START_MOST),
                      0, 0, xdim-1, ydim-1);
-        nextpage();
+        videoNextPage();
 
         return;
     }
@@ -2282,18 +2282,18 @@ drawscreen(PLAYERp pp)
     {
 #define TEN_PIC 5109
 
-        flushperms();
+        renderFlushPerms();
         // note - could put Order Info Pages at the top like this also
         rotatesprite(0,0,65536L,0,TEN_PIC,0,0,
                      (ROTATE_SPRITE_CORNER|ROTATE_SPRITE_SCREEN_CLIP|ROTATE_SPRITE_NON_MASK|ROTATE_SPRITE_IGNORE_START_MOST),
                      0, 0, xdim-1, ydim-1);
 
-        nextpage();
+        videoNextPage();
         return;
     }
 #endif
 
-    if (getrendermode() >= 3)
+    if (videoGetRenderMode() >= 3)
         RedrawScreen = TRUE;
 
     DrawScreen = TRUE;
@@ -2304,7 +2304,7 @@ drawscreen(PLAYERp pp)
         RedrawCompass = TRUE;
         RedrawScreen = FALSE;
         // get rid of all PERM sprites!
-        flushperms();
+        renderFlushPerms();
         // get rid of all PANF_KILL_AFTER_SHOW sprites!
         pFlushPerms(pp);
         SetBorder(pp,gs.BorderNum);
@@ -2424,7 +2424,7 @@ drawscreen(PLAYERp pp)
     }
 
     if (FAF_DebugView)
-        clearview(255);
+        videoClearViewableArea(255);
 
     OverlapDraw = TRUE;
     DrawOverlapRoom(tx, ty, tz, tang, thoriz, tsectnum);
@@ -2445,7 +2445,7 @@ drawscreen(PLAYERp pp)
 
     analyzesprites(tx, ty, tz, FALSE);
     post_analyzesprites();
-    drawmasks();
+    renderDrawMasks();
 
     UpdatePanel();
 
@@ -2503,8 +2503,8 @@ drawscreen(PLAYERp pp)
 
         if (dimensionmode == 6)
         {
-            clearview(0L);
-            drawmapview(tx, ty, zoom, tang);
+            videoClearViewableArea(0L);
+            renderDrawMapView(tx, ty, zoom, tang);
         }
 
         // Draw the line map on top of texture 2d map or just stand alone
@@ -2559,7 +2559,7 @@ drawscreen(PLAYERp pp)
     else
         SecretInfo(pp);
 
-    nextpage();
+    videoNextPage();
 
 #if SYNC_TEST
     SyncStatMessage();
@@ -2693,7 +2693,7 @@ ScreenLoadSaveSetup(PLAYERp pp)
     ScreenTileLock();
 
     if (!waloff[SAVE_SCREEN_TILE])
-        allocache((intptr_t*)&waloff[SAVE_SCREEN_TILE], SAVE_SCREEN_XSIZE * SAVE_SCREEN_YSIZE, &walock[SAVE_SCREEN_TILE]);
+        cacheAllocateBlock((intptr_t*)&waloff[SAVE_SCREEN_TILE], SAVE_SCREEN_XSIZE * SAVE_SCREEN_YSIZE, &walock[SAVE_SCREEN_TILE]);
 
     tilesiz[SAVE_SCREEN_TILE].x = SAVE_SCREEN_XSIZE;
     tilesiz[SAVE_SCREEN_TILE].x = SAVE_SCREEN_YSIZE;
@@ -2708,13 +2708,13 @@ ScreenSaveSetup(PLAYERp pp)
 
     ScreenLoadSaveSetup(Player + myconnectindex);
 
-    setviewtotile(SAVE_SCREEN_TILE, SAVE_SCREEN_YSIZE, SAVE_SCREEN_XSIZE);
+    renderSetTarget(SAVE_SCREEN_TILE, SAVE_SCREEN_YSIZE, SAVE_SCREEN_XSIZE);
 
     ScreenSavePic = TRUE;
     drawscreen(Player + myconnectindex);
     ScreenSavePic = FALSE;
 
-    setviewback();
+    renderRestoreTarget();
 
     return SAVE_SCREEN_TILE;
 }

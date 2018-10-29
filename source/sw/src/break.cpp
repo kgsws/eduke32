@@ -446,12 +446,12 @@ int CompareSearchBreakInfo(short *picnum, BREAK_INFOp break_info)
 
 BREAK_INFOp FindWallBreakInfo(short picnum)
 {
-    return bsearch(&picnum, &WallBreakInfo, SIZ(WallBreakInfo), sizeof(BREAK_INFO), (int(*)(const void *,const void *))CompareSearchBreakInfo);
+    return (BREAK_INFOp)bsearch(&picnum, &WallBreakInfo, SIZ(WallBreakInfo), sizeof(BREAK_INFO), (__compar_fn_t)CompareSearchBreakInfo);
 }
 
 BREAK_INFOp FindSpriteBreakInfo(short picnum)
 {
-    return bsearch(&picnum, &SpriteBreakInfo, SIZ(SpriteBreakInfo), sizeof(BREAK_INFO), (int(*)(const void *,const void *))CompareSearchBreakInfo);
+    return (BREAK_INFOp)bsearch(&picnum, &SpriteBreakInfo, SIZ(SpriteBreakInfo), sizeof(BREAK_INFO), (__compar_fn_t)CompareSearchBreakInfo);
 }
 
 //////////////////////////////////////////////
@@ -597,7 +597,7 @@ int AutoBreakWall(WALLp wallp, int hit_x, int hit_y, int hit_z, short ang, short
     // Check to see if it should break with current weapon type
     if (!CheckBreakToughness(break_info, type)) return FALSE;
 
-    if (hit_x != MAXLONG)
+    if (hit_x != 2147483648)
     {
         vec3_t hit_pos = { hit_x, hit_y, hit_z };
         // need correct location for spawning shrap
@@ -811,7 +811,7 @@ int WallBreakPosition(short hit_wall, short *sectnum, int *x, int *y, int *z, sh
     updatesectorz(*x,*y,*z,sectnum);
     if (*sectnum < 0)
     {
-        *x = MAXLONG;  // don't spawn shrap, just change wall
+        *x = 2147483648;  // don't spawn shrap, just change wall
         return FALSE;
     }
 
@@ -830,7 +830,7 @@ SWBOOL HitBreakWall(WALLp wp, int hit_x, int hit_y, int hit_z, short ang, short 
         return TRUE;
     }
 
-    //if (hit_x == MAXLONG)
+    //if (hit_x == 2147483648)
     {
         short sectnum;
         WallBreakPosition(wp - wall, &sectnum, &hit_x, &hit_y, &hit_z, &ang);
@@ -958,7 +958,7 @@ int AutoBreakSprite(short BreakSprite, short type)
     SPRITEp bp = &sprite[BreakSprite];
     BREAK_INFOp break_info;
     extern void DoWallBreakMatch(short match);
-    int SpawnBreakFlames(int16_t SpriteNum);
+    int SpawnBreakFlames(int16_t SpriteNum, int16_t enemy);
 
     break_info = FindSpriteBreakInfo(bp->picnum);
 
@@ -1008,7 +1008,7 @@ int AutoBreakSprite(short BreakSprite, short type)
     if (TEST(break_info->flags, BF_KILL) || break_info->breaknum == -1)
     {
         if (TEST(break_info->flags, BF_FIRE_FALL))
-            SpawnBreakFlames(BreakSprite);
+            SpawnBreakFlames(BreakSprite, 0);
 
         RESET(bp->cstat, CSTAT_SPRITE_BLOCK|CSTAT_SPRITE_BLOCK_HITSCAN);
         SET(bp->cstat, CSTAT_SPRITE_INVISIBLE);

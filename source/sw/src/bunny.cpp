@@ -1057,7 +1057,7 @@ DoBunnyQuickJump(short SpriteNum)
                         {
                             choose_snd = STD_RANDOM_RANGE(2<<8)>>8;
                             if (FAFcansee(sp->x,sp->y,SPRITEp_TOS(sp),sp->sectnum,pp->posx, pp->posy, pp->posz, pp->cursectnum) && FACING(sp, u->tgt_sp))
-                                PlayerSound(fagsnds[choose_snd],&pp->posx,&pp->posy,&pp->posz,v3df_doppler|v3df_follow|v3df_dontpan,pp);
+                                PlayerSound(fagsnds[choose_snd],&pp->posx,&pp->posy,&pp->posz,(Voc3D_Flags)(v3df_doppler|v3df_follow|v3df_dontpan),pp);
                         }
                     }
                 }
@@ -1073,7 +1073,7 @@ DoBunnyQuickJump(short SpriteNum)
                         {
                             choose_snd = STD_RANDOM_RANGE(3<<8)>>8;
                             if (FAFcansee(sp->x,sp->y,SPRITEp_TOS(sp),sp->sectnum,pp->posx, pp->posy, pp->posz, pp->cursectnum) && FACING(sp, u->tgt_sp))
-                                PlayerSound(straightsnds[choose_snd],&pp->posx,&pp->posy,&pp->posz,v3df_doppler|v3df_follow|v3df_dontpan,pp);
+                                PlayerSound(straightsnds[choose_snd],&pp->posx,&pp->posy,&pp->posz,(Voc3D_Flags)(v3df_doppler|v3df_follow|v3df_dontpan),pp);
                         }
                     }
                 }

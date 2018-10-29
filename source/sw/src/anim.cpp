@@ -47,8 +47,12 @@ Prepared for public release: 03/28/2005 - Charlie Wiederhold, 3D Realms
 #include "animlib.h"
 #include "anim.h"
 
+#include "menus.h"
+
 #define MAX_ANMS 10
+typedef intptr_t anim_t;
 anim_t *anm_ptr[MAX_ANMS];
+int anm_len[MAX_ANMS];
 
 int ANIMnumframes;
 unsigned char ANIMpal[3*256];
@@ -220,7 +224,7 @@ void AnimZilla(int frame, int numframes)
     }
 }
 
-unsigned char *LoadAnm(short anim_num)
+unsigned char *LoadAnm(short anim_num, int *len)
 {
     int handle;
     int length;
@@ -244,8 +248,9 @@ unsigned char *LoadAnm(short anim_num)
             return NULL;
         length = kfilelength(handle);
 
-        allocache((intptr_t *) &anm_ptr[anim_num], length + sizeof(anim_t), &walock[ANIM_TILE(ANIMnum)]);
+        cacheAllocateBlock((intptr_t *) &anm_ptr[anim_num], length + sizeof(anim_t), &walock[ANIM_TILE(ANIMnum)]);
         animbuf = (unsigned char *)((intptr_t)anm_ptr[anim_num] + sizeof(anim_t));
+	anm_len[anim_num] = length;
 
         kread(handle, animbuf, length);
         kclose(handle);
@@ -254,6 +259,8 @@ unsigned char *LoadAnm(short anim_num)
     {
         animbuf = (unsigned char *)((intptr_t)anm_ptr[anim_num] + sizeof(anim_t));
     }
+
+    *len = anm_len[anim_num];
 
     return animbuf;
 }
@@ -280,7 +287,7 @@ playanm(short anim_num)
     DSPRINTF(ds,"PlayAnm");
     MONO_PRINT(ds);
 
-    animbuf = LoadAnm(anim_num);
+    animbuf = LoadAnm(anim_num, &length);
     if (!animbuf)
         return;
 
@@ -291,7 +298,8 @@ playanm(short anim_num)
         tempbuf[i] = i;
     palookup[0] = tempbuf;
 
-    ANIM_LoadAnim(animbuf);
+    if(ANIM_LoadAnim(animbuf, length))
+	goto ENDOFANIMLOOP;
     ANIMnumframes = ANIM_NumFrames();
     numframes = ANIMnumframes;
 
@@ -300,14 +308,14 @@ playanm(short anim_num)
     tilesiz[ANIM_TILE(ANIMnum)].x = 200;
     tilesiz[ANIM_TILE(ANIMnum)].y = 320;
 
-    clearview(0);
+    videoClearViewableArea(0);
 
-    setbrightness(gs.Brightness,ANIMvesapal,2);
+//    videoSetPalette(gs.Brightness,ANIMvesapal,2);
     if (ANIMnum == 1)
     {
         // draw the first frame
         waloff[ANIM_TILE(ANIMnum)] = (intptr_t)ANIM_DrawFrame(1);
-        invalidatetile(ANIM_TILE(ANIMnum), 0, 1<<4);
+        tileInvalidate(ANIM_TILE(ANIMnum), 0, 1<<4);
         rotatesprite(0 << 16, 0 << 16, 65536L, 512, ANIM_TILE(ANIMnum), 0, 0, 2 + 4 + 8 + 16 + 64, 0, 0, xdim - 1, ydim - 1);
     }
 
@@ -320,8 +328,8 @@ playanm(short anim_num)
         while (totalclock < ototalclock)
         {
             handleevents();
-            CONTROL_GetUserInput(&uinfo);
             CONTROL_ClearUserInput(&uinfo);
+            CONTROL_GetUserInput(&uinfo);
             switch (ANIMnum)
             {
             case ANIM_INTRO:
@@ -354,10 +362,10 @@ playanm(short anim_num)
         }
 
         waloff[ANIM_TILE(ANIMnum)] = (intptr_t)ANIM_DrawFrame(i);
-        invalidatetile(ANIM_TILE(ANIMnum), 0, 1<<4);
+        tileInvalidate(ANIM_TILE(ANIMnum), 0, 1<<4);
 
         rotatesprite(0 << 16, 0 << 16, 65536L, 512, ANIM_TILE(ANIMnum), 0, 0, 2 + 4 + 8 + 16 + 64, 0, 0, xdim - 1, ydim - 1);
-        nextpage();
+        videoNextPage();
     }
 
     // pause on final frame
@@ -369,10 +377,10 @@ playanm(short anim_num)
 
 ENDOFANIMLOOP:
 
-    clearview(0);
-    nextpage();
+    videoClearViewableArea(0);
+    videoNextPage();
     palookup[0] = palook_bak;
-    setbrightness(gs.Brightness, (unsigned char *)palette_data, 2);
+//    videoSetPalette(gs.Brightness, (unsigned char *)palette_data, 2);
 
     KB_FlushKeyboardQueue();
     KB_ClearKeysDown();

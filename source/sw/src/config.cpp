@@ -87,8 +87,8 @@ int32_t JoystickAnalogSaturate[MAXJOYAXES];
 //
 
 int32_t ScreenMode = 1;
-int32_t ScreenWidth = 640;
-int32_t ScreenHeight = 480;
+int32_t ScreenWidth = 1280;
+int32_t ScreenHeight = 720;
 int32_t ScreenBPP = 8;
 int32_t ForceSetup = 1;
 
@@ -204,8 +204,8 @@ void CONFIG_SetDefaults(void)
     uint8_t k1,k2;
 
     ScreenMode = 1;
-    ScreenWidth = 640;
-    ScreenHeight = 480;
+//    ScreenWidth = 640;
+//    ScreenHeight = 480;
     ScreenBPP = 8;
     FXDevice = 0;
     MusicDevice = 0;
@@ -242,7 +242,8 @@ void CONFIG_SetDefaults(void)
 
         MouseAnalogAxes[i] = CONFIG_AnalogNameToNum(mouseanalogdefaults[i]);
     }
-    CONTROL_SetMouseSensitivity(gs.MouseSpeed);
+//    CONTROL_SetMouseSensitivity(gs.MouseSpeed);
+    CONTROL_MouseSensitivity = gs.MouseSpeed;
 
     memset(JoystickButtons, -1, sizeof(JoystickButtons));
     memset(JoystickButtonsClicked, -1, sizeof(JoystickButtonsClicked));
@@ -292,7 +293,7 @@ void SetDefaultKeyDefinitions(int style)
         k1 = KB_StringToScanCode(keydefaultset[3*i+1]);
         k2 = KB_StringToScanCode(keydefaultset[3*i+2]);
 
-        CONTROL_MapKey(i, k1, k2);
+//        CONTROL_MapKey(i, k1, k2);
 
         KeyboardKeys[f][0] = k1;
         KeyboardKeys[f][1] = k2;
@@ -387,8 +388,8 @@ void CONFIG_ReadKeys(int32_t scripthandle)
     {
         if (i == gamefunc_Show_Console)
             OSD_CaptureKey(KeyboardKeys[i][0]);
-        else
-            CONTROL_MapKey(i, KeyboardKeys[i][0], KeyboardKeys[i][1]);
+//        else
+//            CONTROL_MapKey(i, KeyboardKeys[i][0], KeyboardKeys[i][1]);
     }
 }
 
@@ -458,7 +459,8 @@ void CONFIG_SetupMouse(void)
         CONTROL_SetAnalogAxisScale(i, MouseAnalogScale[i], controldevice_mouse);
     }
 
-    CONTROL_SetMouseSensitivity(gs.MouseSpeed);
+//    CONTROL_SetMouseSensitivity(gs.MouseSpeed);
+    CONTROL_MouseSensitivity = gs.MouseSpeed;
 }
 
 /*
@@ -531,8 +533,10 @@ void CONFIG_SetupJoystick(void)
         CONTROL_MapDigitalAxis(i, JoystickDigitalAxes[i][0], 0, controldevice_joystick);
         CONTROL_MapDigitalAxis(i, JoystickDigitalAxes[i][1], 1, controldevice_joystick);
         CONTROL_SetAnalogAxisScale(i, JoystickAnalogScale[i], controldevice_joystick);
-        CONTROL_SetJoyAxisDead(i, JoystickAnalogDead[i]);
-        CONTROL_SetJoyAxisSaturate(i, JoystickAnalogSaturate[i]);
+//        CONTROL_SetJoyAxisDead(i, JoystickAnalogDead[i]);
+//        CONTROL_SetJoyAxisSaturate(i, JoystickAnalogSaturate[i]);
+	if(i < joystick.numAxes)
+        	joySetDeadZone(i, JoystickAnalogDead[i], JoystickAnalogSaturate[i]);
     }
 }
 
@@ -571,9 +575,11 @@ int32_t CONFIG_ReadSetup(void)
     SCRIPT_GetNumber(scripthandle, "Screen Setup", "MaxRefreshFreq", (int32_t *)&maxrefreshfreq);
 #endif
 
+#ifdef USE_OPENGL
     SCRIPT_GetNumber(scripthandle, "Screen Setup", "GLTextureMode", &gltexfiltermode);
     SCRIPT_GetNumber(scripthandle, "Screen Setup", "GLAnisotropy", &glanisotropy);
     SCRIPT_GetNumber(scripthandle, "Screen Setup", "GLUseTextureCompr", &glusetexcompr);
+#endif
 
     SCRIPT_GetNumber(scripthandle, "Sound Setup", "FXDevice",&FXDevice);
     SCRIPT_GetNumber(scripthandle, "Sound Setup", "MusicDevice",&MusicDevice);
@@ -638,10 +644,11 @@ void CONFIG_WriteSetup(void)
 #ifdef RENDERTYPEWIN
     SCRIPT_PutNumber(scripthandle, "Screen Setup", "MaxRefreshFreq",maxrefreshfreq,FALSE,FALSE);
 #endif
+#ifdef USE_OPENGL
     SCRIPT_PutNumber(scripthandle, "Screen Setup", "GLTextureMode",gltexfiltermode,FALSE,FALSE);
     SCRIPT_PutNumber(scripthandle, "Screen Setup", "GLAnisotropy",glanisotropy,FALSE,FALSE);
     SCRIPT_PutNumber(scripthandle, "Screen Setup", "GLUseTextureCompr",glusetexcompr,FALSE,FALSE);
-
+#endif
     SCRIPT_PutNumber(scripthandle, "Sound Setup", "FXDevice", FXDevice, FALSE, FALSE);
     SCRIPT_PutNumber(scripthandle, "Sound Setup", "MusicDevice", MusicDevice, FALSE, FALSE);
     SCRIPT_PutNumber(scripthandle, "Sound Setup", "NumVoices", NumVoices, FALSE, FALSE);

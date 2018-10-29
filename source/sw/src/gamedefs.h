@@ -125,7 +125,7 @@ extern "C" {
 
 // Number of JOY axes
 
-#define MAXJOYAXES 6
+#define MAXJOYAXES 9
 
 // Number of GAMEPAD axes
 
@@ -158,7 +158,18 @@ extern "C" {
 
 // DEFAULT mouse sensitivity scale
 
-#define DEFAULTMOUSESENSITIVITY (1<<(15-CONTROLSHIFT))
+#define DEFAULTMOUSESENSITIVITY             7
+#define DEFAULTMOUSEANALOGUESCALE           65536
+
+#if defined(GEKKO)
+#define DEFAULTJOYSTICKANALOGUESCALE        16384
+#define DEFAULTJOYSTICKANALOGUEDEAD         1000
+#define DEFAULTJOYSTICKANALOGUESATURATE     9500
+#else
+#define DEFAULTJOYSTICKANALOGUESCALE        65536
+#define DEFAULTJOYSTICKANALOGUEDEAD         1000
+#define DEFAULTJOYSTICKANALOGUESATURATE     9500
+#endif
 
 enum
 {

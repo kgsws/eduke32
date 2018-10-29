@@ -32,7 +32,10 @@ struct grpfile
     int crcval;
     int size;
     struct grpfile *next;
-} grpfiles[numgrpfiles], *foundgrps;
+};
+
+extern struct grpfile grpfiles[numgrpfiles];
+extern struct grpfile *foundgrps;
 
 int ScanGroups(void);
 void FreeGroups(void);

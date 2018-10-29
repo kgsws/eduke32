@@ -98,7 +98,7 @@ SpawnWallSound(short sndnum, short i)
     setspritez(SpriteNum, &mid);
     sp = &sprite[SpriteNum];
 
-    handle = PlaySound(sndnum, &sp->x, &sp->y, &sp->z, v3df_dontpan | v3df_doppler);
+    handle = PlaySound(sndnum, &sp->x, &sp->y, &sp->z, (Voc3D_Flags)(v3df_dontpan | v3df_doppler));
     if (handle != -1)
         Set3DSoundOwner(SpriteNum);
 }
@@ -249,19 +249,19 @@ JS_SpriteSetup(void)
         case 2720:
         case 3143:
         case 3157:
-            handle = PlaySound(DIGI_FIRE1, &sp->x, &sp->y, &sp->z, v3df_follow|v3df_dontpan|v3df_doppler);
+            handle = PlaySound(DIGI_FIRE1, &sp->x, &sp->y, &sp->z, (Voc3D_Flags)(v3df_follow|v3df_dontpan|v3df_doppler));
             if (handle != -1)
                 Set3DSoundOwner(SpriteNum);
             break;
         case 795:
         case 880:
-            handle = PlaySound(DIGI_WATERFLOW1, &sp->x, &sp->y, &sp->z, v3df_follow|v3df_dontpan|v3df_doppler);
+            handle = PlaySound(DIGI_WATERFLOW1, &sp->x, &sp->y, &sp->z, (Voc3D_Flags)(v3df_follow|v3df_dontpan|v3df_doppler));
             if (handle != -1)
                 Set3DSoundOwner(SpriteNum);
             break;
         case 460:  // Wind Chimes
-            handle = PlaySound(79, &sp->x, &sp->y, &sp->z, v3df_ambient | v3df_init
-                               | v3df_doppler | v3df_follow);
+            handle = PlaySound(79, &sp->x, &sp->y, &sp->z, (Voc3D_Flags)(v3df_ambient | v3df_init
+                               | v3df_doppler | v3df_follow));
             if (handle != -1)
                 Set3DSoundOwner(SpriteNum);
             break;
@@ -488,21 +488,21 @@ void drawroomstotile(int daposx, int daposy, int daposz,
                      short daang, int dahoriz, short dacursectnum, short tilenume)
 {
     if (waloff[tilenume] == 0)
-        loadtile(tilenume);
+        tileLoad(tilenume);
 
     PRODUCTION_ASSERT(waloff[tilenume]);
 
-    setviewtotile(tilenume, tilesiz[tilenume].x, tilesiz[tilenume].y);
+    renderSetTarget(tilenume, tilesiz[tilenume].x, tilesiz[tilenume].y);
 
     drawrooms(daposx, daposy, daposz, daang, dahoriz, dacursectnum);
     analyzesprites(daposx, daposy, daposz, FALSE);
-    drawmasks();
+    renderDrawMasks();
 
-    setviewback();
+    renderRestoreTarget();
 
     squarerotatetile(tilenume);
 
-    invalidatetile(tilenume, -1, -1);
+    tileInvalidate(tilenume, -1, -1);
 }
 #else
 void
@@ -526,7 +526,7 @@ drawroomstotile(int daposx, int daposy, int daposz,
     bakvidoption = vidoption;
     vidoption = 1;
     if (waloff[tilenume] == 0)
-        loadtile(tilenume);
+        tileLoad(tilenume);
     bakframeplace = frameplace;
     frameplace = waloff[tilenume];
     bakwindowxy1 = windowxy1;
@@ -542,9 +542,9 @@ drawroomstotile(int daposx, int daposy, int daposz,
     // DRAWS TO TILE HERE
     drawrooms(daposx, daposy, daposz, daang, dahoriz, dacursectnum + MAXSECTORS);
     analyzesprites(daposx, daposy, daposz, FALSE);
-    drawmasks();
+    renderDrawMasks();
 
-    setviewback();
+    renderRestoreTarget();
 
     // ROTATE TILE (supports square tiles only for rotation part)
     if (xsiz == ysiz)
@@ -647,7 +647,7 @@ JS_DrawMirrors(PLAYERp pp, int tx, int ty, int tz, short tpang, int tphoriz)
     int tposx, tposy, thoriz;
     int tcx, tcy, tcz;                 // Camera
     int tiltlock, *longptr;
-    short tang;
+    int tang;
     char ch, *ptr, *ptr2, *ptr3, *ptr4;
     char tvisibility, palok;
 
@@ -791,7 +791,7 @@ JS_DrawMirrors(PLAYERp pp, int tx, int ty, int tz, short tpang, int tphoriz)
                             tilesiz[mirror[cnt].campic].x = tilesiz[mirror[cnt].campic].y = 0;
                         drawrooms(dx, dy, dz, tpang, tphoriz, sp->sectnum + MAXSECTORS);
                         analyzesprites(dx, dy, dz, FALSE);
-                        drawmasks();
+                        renderDrawMasks();
                     }
                     else
                     {
@@ -889,15 +889,15 @@ JS_DrawMirrors(PLAYERp pp, int tx, int ty, int tz, short tpang, int tphoriz)
                     // Must call preparemirror before drawrooms and
                     // completemirror after drawrooms
 
-                    preparemirror(tx, ty, /*tz,*/ tpang, /*tphoriz,*/
+                    renderPrepareMirror(tx, ty, /*tz,*/ tpang, /*tphoriz,*/
                                   mirror[cnt].mirrorwall, /*mirror[cnt].mirrorsector,*/ &tposx, &tposy, &tang);
 
                     drawrooms(tposx, tposy, tz, tang, tphoriz, mirror[cnt].mirrorsector + MAXSECTORS);
 
                     analyzesprites(tposx, tposy, tz, TRUE);
-                    drawmasks();
+                    renderDrawMasks();
 
-                    completemirror();   // Reverse screen x-wise in this
+                    renderCompleteMirror();   // Reverse screen x-wise in this
                     // function
                 }
 
@@ -1081,7 +1081,9 @@ JAnalyzeSprites(uspritetype * tspr)
     // Take care of autosizing
     DoAutoSize(tspr);
 
-    if (getrendermode() == 3 && md_tilehasmodel(tspr->picnum, 0) >= 0 && usemodels) return;
+#ifdef USE_OPENGL
+    if (videoGetRenderMode() == 3 && md_tilehasmodel(tspr->picnum, 0) >= 0 && usemodels) return;
+#endif
 
     // Check for voxels
     //if (bVoxelsOn)
@@ -1151,7 +1153,7 @@ InitOrgTile(OrgTileListP thelist)
     OrgTileP tp;
 
 
-    tp = CallocMem(sizeof(OrgTile), 1);
+    tp = (OrgTileP)CallocMem(sizeof(OrgTile), 1);
 
     ASSERT(tp);
 
@@ -1448,7 +1450,7 @@ UnlockKeyLock(short key_num, short hit_sprite)
         case SKEL_LOCKED:
             if (sp->pal == color)
             {
-                PlaySound(DIGI_UNLOCK, &sp->x, &sp->y, &sp->z, v3df_doppler | v3df_dontpan);
+                PlaySound(DIGI_UNLOCK, &sp->x, &sp->y, &sp->z, (Voc3D_Flags)(v3df_doppler | v3df_dontpan));
                 if (SpriteNum == hit_sprite)
                     sp->picnum = SKEL_UNLOCKED;
             }
@@ -1456,14 +1458,14 @@ UnlockKeyLock(short key_num, short hit_sprite)
         case RAMCARD_LOCKED:
             if (sp->pal == color)
             {
-                PlaySound(DIGI_CARDUNLOCK, &sp->x, &sp->y, &sp->z, v3df_doppler | v3df_dontpan);
+                PlaySound(DIGI_CARDUNLOCK, &sp->x, &sp->y, &sp->z, (Voc3D_Flags)(v3df_doppler | v3df_dontpan));
                 sp->picnum = RAMCARD_UNLOCKED;
             }
             break;
         case CARD_LOCKED:
             if (sp->pal == color)
             {
-                PlaySound(DIGI_RAMUNLOCK, &sp->x, &sp->y, &sp->z, v3df_doppler | v3df_dontpan);
+                PlaySound(DIGI_RAMUNLOCK, &sp->x, &sp->y, &sp->z, (Voc3D_Flags)(v3df_doppler | v3df_dontpan));
                 if (SpriteNum == hit_sprite)
                     sp->picnum = CARD_UNLOCKED;
                 else

@@ -23,6 +23,7 @@
 
 #include "compat.h"
 #include "saveable.h"
+#include "build.h"
 
 #define maxModules 35
 
@@ -38,42 +39,53 @@ void Saveable_Init(void)
         saveablemodules[nummodules++] = &saveable_ ## x; \
 }
 
-    MODULE(actor)
+    MODULE(actor)	// 0
     MODULE(ai)
     MODULE(build)
     MODULE(bunny)
     MODULE(coolg)
-    MODULE(coolie)
+    MODULE(coolie)	// 5
     MODULE(eel)
     MODULE(girlninj)
     MODULE(goro)
     MODULE(hornet)
-    MODULE(jweapon)
+    MODULE(jweapon)	// 10
     MODULE(lava)
     MODULE(miscactr)
     MODULE(morph)
     MODULE(ninja)
-    MODULE(panel)
+    MODULE(panel)	// 15
     MODULE(player)
     MODULE(quake)
     MODULE(ripper)
     MODULE(ripper2)
-    MODULE(rotator)
+    MODULE(rotator)	// 20
     MODULE(serp)
     MODULE(skel)
     MODULE(skull)
     MODULE(slidor)
-    MODULE(spike)
+    MODULE(spike)	// 25
     MODULE(sprite)
     MODULE(sumo)
     MODULE(track)
     MODULE(vator)
-    MODULE(wallmove)
+    MODULE(wallmove)	// 30
     MODULE(weapon)
     MODULE(zilla)
     MODULE(zombie)
 
     MODULE(sector)
+
+    {
+	// [kg] fix new 'build' arrays
+	extern saveable_module saveable_build;
+	saveable_build.data[0].base = sector;
+	saveable_build.data[0].size = MAXSECTORS * sizeof(sectortype);
+	saveable_build.data[1].base = sprite;
+	saveable_build.data[1].size = MAXSPRITES * sizeof(spritetype);
+	saveable_build.data[2].base = wall;
+	saveable_build.data[2].size = MAXWALLS * sizeof(walltype);
+    }
 }
 
 int Saveable_FindCodeSym(void *ptr, savedcodesym *sym)
@@ -117,8 +129,10 @@ int Saveable_FindDataSym(void *ptr, saveddatasym *sym)
 
     for (m=0; m<nummodules; m++)
     {
+//printf("module %d\n", m);
         for (i=0; i<saveablemodules[m]->numdata; i++)
         {
+//printf("check %p in range %p to %p\n", ptr, saveablemodules[m]->data[i].base, saveablemodules[m]->data[i].base + saveablemodules[m]->data[i].size);
             if (ptr < saveablemodules[m]->data[i].base) continue;
             if (ptr >= (void *)((intptr_t)saveablemodules[m]->data[i].base +
                                 saveablemodules[m]->data[i].size)) continue;

@@ -489,7 +489,7 @@ SectorSetup(void)
         SectorObject[ndx].Animator = NULL;
         SectorObject[ndx].controller = NULL;
         SectorObject[ndx].sp_child = NULL;
-        SectorObject[ndx].xmid = MAXLONG;
+        SectorObject[ndx].xmid = 2147483647;
     }
 
     memset(SineWaveFloor, -1, sizeof(SineWaveFloor));
@@ -1443,7 +1443,7 @@ DoSectorObjectKillMatch(short match)
 
     for (sop = SectorObject; sop < &SectorObject[MAX_SECTOR_OBJECTS]; sop++)
     {
-        if (sop->xmid == MAXLONG)
+        if (sop->xmid == 2147483647)
             continue;
 
         if (sop->match_event == match)
@@ -3415,7 +3415,7 @@ DoSector(void)
     for (sop = SectorObject; sop < &SectorObject[MAX_SECTOR_OBJECTS]; sop++)
     {
 
-        if (sop->xmid == MAXLONG || sop->xmid == MAXSO)
+        if (sop->xmid == 2147483647 || sop->xmid == MAXSO)
             continue;
 
 

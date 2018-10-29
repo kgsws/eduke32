@@ -34,6 +34,7 @@ Prepared for public release: 03/28/2005 - Charlie Wiederhold, 3D Realms
 #include "common_game.h"
 #include "pal.h"
 #include "text.h"
+#include "control.h"
 #include "menus.h"
 
 #include "net.h"

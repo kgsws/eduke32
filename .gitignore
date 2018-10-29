@@ -50,6 +50,7 @@ project.xcworkspace/
 .DS_Store
 
 eduke32.nro
-eduke32.nacp
 mapster32.nro
 mapster32.nacp
+
+voidsw.nro

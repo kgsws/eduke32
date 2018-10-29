@@ -264,7 +264,9 @@ void maybe_redirect_outputs(void);
 }
 #endif
 
+#ifndef SOUNDS_HAX_FIX
 #include "print.h"
+#endif
 
 #endif // baselayer_h_
 

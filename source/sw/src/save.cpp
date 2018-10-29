@@ -392,6 +392,7 @@ int SaveGame(short save_num)
     MWRITE(headspritestat,sizeof(headspritestat),1,fil);
     MWRITE(prevspritestat,sizeof(prevspritestat),1,fil);
     MWRITE(nextspritestat,sizeof(nextspritestat),1,fil);
+    MWRITE(&tailspritefree,sizeof(tailspritefree),1,fil);
 
     //User information
     for (i = 0; i < MAXSPRITES; i++)
@@ -905,6 +906,7 @@ int LoadGame(short save_num)
     MREAD(headspritestat,sizeof(headspritestat),1,fil);
     MREAD(prevspritestat,sizeof(prevspritestat),1,fil);
     MREAD(nextspritestat,sizeof(nextspritestat),1,fil);
+    MREAD(&tailspritefree,sizeof(tailspritefree),1,fil);
 
     //User information
     memset(User, 0, sizeof(User));
@@ -1313,10 +1315,10 @@ ScreenLoad(MFILE_READ fin)
 {
     int num;
 
-    setviewtotile(SAVE_SCREEN_TILE, SAVE_SCREEN_YSIZE, SAVE_SCREEN_XSIZE);
+    renderSetTarget(SAVE_SCREEN_TILE, SAVE_SCREEN_YSIZE, SAVE_SCREEN_XSIZE);
 
     num = MREAD((void *)waloff[SAVE_SCREEN_TILE], SAVE_SCREEN_XSIZE * SAVE_SCREEN_YSIZE, 1, fin);
 
-    setviewback();
+    renderRestoreTarget();
 }
 

@@ -253,12 +253,12 @@ void SaveCheat(PLAYERp pp, char *UNUSED(cheat_string))
 
 void GeorgeFunc(PLAYERp pp, char *UNUSED(cheat_string))
 {
-    PlayerSound(DIGI_TAUNTAI9,&pp->posx,&pp->posy,&pp->posz,v3df_dontpan|v3df_doppler|v3df_follow,pp);
+    PlayerSound(DIGI_TAUNTAI9,&pp->posx,&pp->posy,&pp->posz,(Voc3D_Flags)(v3df_dontpan|v3df_doppler|v3df_follow),pp);
 }
 
 void BlackburnFunc(PLAYERp pp, char *UNUSED(cheat_string))
 {
-    PlayerSound(DIGI_TAUNTAI3,&pp->posx,&pp->posy,&pp->posz,v3df_dontpan|v3df_doppler|v3df_follow,pp);
+    PlayerSound(DIGI_TAUNTAI3,&pp->posx,&pp->posy,&pp->posz,(Voc3D_Flags)(v3df_dontpan|v3df_doppler|v3df_follow),pp);
 }
 
 int cheatcmp(char *str1, char *str2, int len)

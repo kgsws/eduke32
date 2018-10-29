@@ -7755,10 +7755,10 @@ void TraverseBreakableWalls(short start_sect, int x, int y, int z, short ang, in
 
                 if (WallBreakPosition(j, &sectnum, &hit_x, &hit_y, &hit_z, &wall_ang))
                 {
-                    if (hit_x != MAXLONG && sectnum >= 0 && FAFcansee(x, y, z, start_sect, hit_x, hit_y, hit_z, sectnum))
+                    if (hit_x != 2147483647 && sectnum >= 0 && FAFcansee(x, y, z, start_sect, hit_x, hit_y, hit_z, sectnum))
                     {
                         //HitBreakWall(&wall[j], x, y, z, ang, 0);
-                        HitBreakWall(&wall[j], MAXLONG, MAXLONG, MAXLONG, ang, 0);
+                        HitBreakWall(&wall[j], 2147483647, 2147483647, 2147483647, ang, 0);
 
                         break_count++;
                         if (break_count > 4)

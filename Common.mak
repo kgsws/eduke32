@@ -350,6 +350,7 @@ STARTUP_WINDOW := 1
 SIMPLE_MENU := 0
 POLYMER := 1
 USE_OPENGL := 1
+USE_GLES := 0
 LUNATIC := 0
 USE_LUAJIT_2_1 := 0
 
@@ -402,6 +403,8 @@ else ifeq ($(PLATFORM),WII)
     SDL_TARGET := 1
 else ifeq ($(PLATFORM),SWITCH)
     override USE_OPENGL := 0
+    override USE_GLES := 0
+    override POLYMER := 0
     override NETCODE := 0
     override HAVE_GTK2 := 0
     override NOASM := 1
@@ -837,6 +840,9 @@ ifneq (0,$(STANDALONE))
 endif
 ifneq (0,$(USE_OPENGL))
     COMPILERFLAGS += -DUSE_OPENGL
+endif
+ifneq (0,$(USE_GLES))
+    COMPILERFLAGS += -DEDUKE32_GLES -DHAVE_JWZGLES
 endif
 ifneq (0,$(POLYMER))
     COMPILERFLAGS += -DPOLYMER

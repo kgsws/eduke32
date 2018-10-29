@@ -316,6 +316,10 @@ SWBOOL MNU_KeySetupCustom(UserCall call, MenuItem *item);
 SWBOOL MNU_LoadModernDefaults(void);
 SWBOOL MNU_LoadClassicDefaults(void);
 
+// extra stuff
+void CONTROL_GetUserInput(UserInput *input);
+void CONTROL_ClearUserInput(UserInput *input);
+
 // Menu Definitions /////////////////////////////////////////////////////////////////////////////
 
 #define DefInert(key,text)          mt_inert,mf_normal,sldr_none,btn_none,key,text,NULL

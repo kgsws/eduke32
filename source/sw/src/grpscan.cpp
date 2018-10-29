@@ -34,7 +34,7 @@ struct grpfile grpfiles[numgrpfiles] =
 {
     { "Registered Version",     0x7545319F, 47536148, NULL },
     { "Shareware Version",      0x08A7FA1F, 26056769, NULL },
-    { "Wanton Destruction (Addon)", 0xA9AAA7B7, 48698128, NULL },
+    { "Wanton Destruction (Addon)", (int)0xA9AAA7B7, 48698128, NULL },
 };
 struct grpfile *foundgrps = NULL;
 
@@ -67,7 +67,7 @@ static int LoadGroupsCache(void)
         if (scriptfile_getnumber(script, &fmtime)) break;   // modification time
         if (scriptfile_getnumber(script, &fcrcval)) break;  // crc checksum
 
-        fg = calloc(1, sizeof(struct grpcache));
+        fg = (struct grpcache*)calloc(1, sizeof(struct grpcache));
         fg->next = grpcache;
         grpcache = fg;
 
@@ -141,7 +141,7 @@ int ScanGroups(void)
 
         {
             int b, fh;
-            unsigned int crcval;
+            unsigned int crcval = 0;
             unsigned char buf[16*512];
 
             fh = openfrompath(sidx->name, BO_RDONLY|BO_BINARY, BS_IREAD);
@@ -149,14 +149,14 @@ int ScanGroups(void)
             if (fstat(fh, &st)) continue;
 
             buildprintf(" Checksumming %s...", sidx->name);
-            crc32init(&crcval);
+
             do
             {
                 b = read(fh, buf, sizeof(buf));
-                if (b > 0) crc32block(&crcval, buf, b);
+                if (b > 0) crcval = Bcrc32((uint8_t *)buf, b, crcval);
             }
             while (b == sizeof(buf));
-            crc32finish(&crcval);
+
             close(fh);
             buildputs(" Done\n");
 

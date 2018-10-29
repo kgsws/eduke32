@@ -23,6 +23,9 @@ Original Source: 1997 - Frank Maddin and Jim Norwood
 Prepared for public release: 03/28/2005 - Charlie Wiederhold, 3D Realms
 */
 //-------------------------------------------------------------------------
+
+#define SOUNDS_HAX_FIX
+
 #include "compat.h"
 #include "build.h"
 #include "cache1d.h"
@@ -770,7 +773,7 @@ SWBOOL CacheSound(int num, int type)
             */
             vp->lock = CACHE_UNLOCK_MAX;
 
-            allocache((intptr_t*)&vp->data, length, &vp->lock);
+            cacheAllocateBlock((intptr_t*)&vp->data, length, &vp->lock);
 
 #if 0
             // DEBUG
@@ -1775,6 +1778,14 @@ DoUpdateSounds3D(void)
             }
             else if (FX_SoundActive(p->handle))
             {
+                PLAYERp pp = Player+screenpeek;
+
+                if(pp->TalkVocHandle == p->handle)
+                {
+                    // [kg] fix player sounds
+                    dist = 0;
+                    angle = 0;
+                } else
                 if (p->flags & v3df_follow)
                 {
                     dist = SoundDist(*p->x, *p->y, *p->z, p->vp->voc_distance);
@@ -1790,9 +1801,8 @@ DoUpdateSounds3D(void)
                 }
 
                 // Can the ambient sound see the player?  If not, tone it down some.
-                if ((p->vp->voc_flags & vf_loop) && p->owner != -1)
+                if ((p->vp->voc_flags & vf_loop) && p->owner != -1 && pp->TalkVocHandle != p->handle)
                 {
-                    PLAYERp pp = Player+screenpeek;
                     SPRITEp sp = &sprite[p->owner];
 
                     //MONO_PRINT("Checking sound cansee");

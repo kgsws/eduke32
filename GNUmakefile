@@ -675,7 +675,7 @@ sw_src := $(sw_root)/src
 sw_rsrc := $(sw_root)/rsrc
 sw_obj := $(obj)/$(sw)
 
-sw_cflags := -I$(sw_src)
+sw_cflags := -I$(sw_src) -fpermissive
 
 sw_game_deps := duke3d_common_midi audiolib mact
 sw_editor_deps := audiolib
@@ -881,8 +881,7 @@ ifeq ($$(PLATFORM),DARWIN)
 	cp -f "$$($1_$2)$$(EXESUFFIX)" "$$($1_$2_proper).app/Contents/MacOS/"
 endif
 ifeq ($$(PLATFORM),SWITCH)
-	/opt/devkitpro/tools/bin/nacptool --create "Duke Nukem 3D" "Cpasjuste" "1.1" $$($1_$2).nacp
-	/opt/devkitpro/tools/bin/elf2nro $$@ $$($1_$2).nro --icon=platform/Switch/icon.jpg --nacp=$$($1_$2).nacp
+	/opt/devkitpro/tools/bin/elf2nro $$@ $$($1_$2).nro --icon=platform/Switch/$$($1_$2).jpg --nacp=platform/Switch/$$($1_$2).nacp
 endif
 
 endef

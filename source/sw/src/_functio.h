@@ -86,6 +86,7 @@ char *gamefunctions[] =
     "Next_Weapon",
     "Previous_Weapon",
     "Show_Menu",
+    "Alter_Weapon",
     "Show_Console",
 };
 

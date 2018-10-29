@@ -2278,7 +2278,7 @@ extern SWBOOL NightVision;
 int _PlayerSound(char *file, int line, int num, int *x, int *y, int *z, Voc3D_Flags flags, PLAYERp pp);
 #define PlayerSound(num, x, y, z, flags, pp) _PlayerSound(__FILE__, __LINE__, (num), (x), (y), (z), (flags), (pp))
 
-#define MAXSO (MAXLONG)
+#define MAXSO (2147483647)
 
 ///////////////////////////////////////////////////////////////
 //

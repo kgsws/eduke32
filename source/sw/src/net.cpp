@@ -37,8 +37,10 @@ Prepared for public release: 03/28/2005 - Charlie Wiederhold, 3D Realms
 
 #include "weapon.h"
 #include "text.h"
+#include "control.h"
 #include "menus.h"
 
+#undef SYNC_TEST
 
 /*
 SYNC BUG NOTES:
@@ -951,7 +953,7 @@ faketimerhandler(void)
     }
 #endif
 
-    sampletimer();
+    timerUpdate();
     if ((totalclock < ototalclock + synctics))
         return;
 
@@ -1260,7 +1262,7 @@ getpackets(void)
     PLAYERp pp;
     SW_PACKET tempinput;
 
-    sampletimer();
+    timerUpdate();
 
     if (!CommEnabled)
         return;
