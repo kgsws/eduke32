@@ -23,3 +23,6 @@ BEWARE! In order to save your new configuration, you have to exit the game. Exit
 There are multiple weapons in this game that have alternative functions. Normally these accessed by selecting specific weapon again.
 Since Switch does not have enough buttons for that, i have added new button function.
 This function is called `Alter_Weapon` and it will switch weapon function, for weapons that have more than one.
+
+#### Additional files
+Both games need their original game files, duke3d.grp and sw.grp, placed in corresponding game directory.
