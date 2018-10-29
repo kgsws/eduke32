@@ -6,8 +6,8 @@
 - Sound is a bit off after wake up from sleep.
 
 #### Compile
-To compile eduke32 use command `make PLATFORM=SWITCH` and wait.
-To compile voidsw use command `make sw PLATFORM=SWITCH` and wait.
+- To compile eduke32 use command `make PLATFORM=SWITCH` and wait.
+- To compile voidsw use command `make sw PLATFORM=SWITCH` and wait.
 Shadow Warrior compilation will fail at map editor. But at this time, game NRO is already built.
 
 #### Install
