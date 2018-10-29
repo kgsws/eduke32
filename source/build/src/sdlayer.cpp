@@ -1012,6 +1012,28 @@ int32_t timerticspersec=0;
 static double msperu64tick = 0;
 static void(*usertimercallback)(void) = NULL;
 
+#ifdef __SWITCH__
+// [kg] huge hack for NX
+// SDL_GetTicks actually counts even when console is sleeping.
+// This hack disables any duration longer that 250ms.
+uint32_t GetHackTicks()
+{
+	static uint32_t last;
+	static uint32_t offs;
+	uint32_t now;
+
+	now = SDL_GetTicks();
+	if(now - offs > last + 250)
+	{
+		// probably wakeup from sleep
+		// add sleep duration to the offset
+		offs += now - last;
+	}
+	last = now;
+	return now - offs;
+}
+#define SDL_GetTicks() GetHackTicks()
+#endif
 
 //
 // inittimer() -- initialize timer
